@@ -16,9 +16,7 @@ must flush stream to avoid buffering, use fflush()
 
 (TCP)
 
-TODO add dynamic event file detection
-
-TODO daemonize
+add dynamic event file detection and daemonize to arm
 
 */
 
