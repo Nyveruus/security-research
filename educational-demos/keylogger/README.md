@@ -1,6 +1,8 @@
-# How it works:
+# The program
 
-# Architecture
+This is a kernel-level key logger that sends all key presses to a listening tcp port.
+
+## Architecture
 
 This program takes advantage of the fact that everything is a file in Linux. To elaborate, it takes advantage of the keyboard event file which is a character device node located in /dev/input. /dev/input hosts a myriad of different event files, thus /dev/input/by-id can be used to find the symlink to the correct event file, once it's found with root priveleges, access to the stream of all keyboard events is gained.
 
@@ -13,5 +15,19 @@ Afterwards, the main keyboard keylogger boils down to filtering to EV_KEY types 
 The second logical half of the program consists opening a socket file descriptor and connecting it to an IP address and port over TCP to send key presses to. To be able to connect it to the IP address and port, a sockaddr struct needs to be passed to connect() which is done via casting a sockaddr_in struct that holds the family, port and address. Before assigning to the fields in the sockaddr_in struct, it needs to be zeroed out to avoid undefined behavior from the padding when casted as sockaddr.
 
 If connection succeeds, the keylogger sends all key events that are recorded thereafter over the socket. If it doesn't recognize a key, it will output the key code.
+
+## Usage
+
+```
+$ ./sudo keylogger <eventfile>
+```
+
+## Examples
+Connect:
+<img src="examples/connection.png">
+Input example:
+<img src="examples/example_input.png">
+Output example:
+<img src="examples/example_output.png">
 
 # Prevention:
