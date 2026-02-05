@@ -27,7 +27,13 @@ If connection succeeds, the keylogger sends all key events that are recorded the
 ## Usage
 
 ```
-$ ./sudo keylogger <eventfile>
+$ sudo ./keylogger <eventfile>
+```
+
+## Compilation
+
+```
+$ gcc -Wall -Wextra keylogger.c -o keylogger
 ```
 
 ## Examples
@@ -58,9 +64,9 @@ It is assumed that this is implemented with the features it lacks to be used mal
 
 ### Monitor Processes
 
-- Look for any unusual processses with top or ps
+- Look for any unusual processes with top or ps
 
-- Check processses accessing input devices:
+- Check processes accessing input devices:
 
 ```
 $ lsof | grep /dev/input
