@@ -23,11 +23,17 @@ $ ./sudo keylogger <eventfile>
 ```
 
 ## Examples
+
 Connect:
+
 <img src="examples/connection.png">
+
 Input example:
+
 <img src="examples/example_input.png">
+
 Output example:
+
 <img src="examples/example_output.png">
 
 # Prevention:
