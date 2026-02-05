@@ -1,10 +1,11 @@
-## LEGAL AND ETHICAL DISCLAIMER
+## DISCLAIMER
 
-**FOR EDUCATIONAL AND AUTHORIZED SECURITY RESEARCH ONLY**
+**EDUCATIONAL AND SECURITY RESEARCH ONLY**
 
 This project is intended solely for:
 - Those learning about Linux kernel interfaces and input event handling
-- Understanding offensive security techniques in isolated lab environments you own
+- Those learning about socket programming
+- Understanding security techniques in isolated lab environments that **you own!!**
 
 # The Program
 
