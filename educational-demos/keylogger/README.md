@@ -72,5 +72,5 @@ Example with tcpdump:
 
 <img src="examples/tcpdump.png">
 
-This type of traffic is highly unusual even visually because the keylogger transmits every keypress over a packet through TCP - no encryption - and if printable ascii is displayed, every keypress can be seen. It is important to note that it can be augmented to be very stealthy, especially if implemented with batching (grouping key presses and sending between timed intervals), with OpenSSL and using port 443 so as to appear as https traffic, which will require a more thorough analysis to see.
+This type of traffic is highly unusual because the keylogger transmits every keypress over a packet through TCP - no encryption - and if printable ascii is displayed, every keypress can be seen. It is important to note that it can be augmented to be very stealthy, especially if implemented with batching (grouping key presses and sending between timed intervals), with OpenSSL and using port 443 so as to appear as https traffic, which will require a more thorough analysis to discover
 

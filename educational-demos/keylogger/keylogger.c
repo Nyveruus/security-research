@@ -1,28 +1,3 @@
-/*
-
-use the keyboard event file in /dev/
-take argument
-
-cannot use fopen or fread to read events because of blocking behavior
-use sys functions provided by kernel to read keyboard events (documentation for system functions are found in man 2), check man syscalls
-
-Buffer to allocate is the input_event struct in header linux/input.h https://stackoverflow.com/questions/21204798/read-in-linux-for-event-file
-
-open() returns int file descriptor
-
-https://www.kernel.org/doc/html/v4.14/input/event-codes.html
-
-
-https://www.kernel.org/doc/Documentation/input/event-codes.rst
-
-must flush stream to avoid buffering, use fflush()
-
-(TCP)
-
-add dynamic event file detection and daemonize to improve
-
-*/
-
 #include <stdio.h>
 #include <fcntl.h>
 #include <unistd.h>
